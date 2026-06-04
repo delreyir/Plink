@@ -80,7 +80,7 @@ export function FlowAnimation() {
           {[
             ["Network", "Arc"],
             ["Settles", "< 1s"],
-            ["Fee", "0%"],
+            ["Fee", "1%"],
           ].map(([k, v]) => (
             <div key={k} className="bg-ink-850 py-3.5">
               <div className="text-[10px] uppercase tracking-wider text-haze">

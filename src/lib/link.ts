@@ -1,4 +1,4 @@
-import { getAddress, isAddress, parseUnits, formatUnits } from "viem";
+import { getAddress, isAddress, parseUnits, formatUnits, keccak256, encodePacked } from "viem";
 import { USDC_DECIMALS } from "./arc";
 
 /**
@@ -84,4 +84,19 @@ export function formatUsd(amount: string | number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+/**
+ * Derive a deterministic `linkId` (bytes32) from a payment request so the
+ * on-chain `PaymentReceived` event can be reconciled back to the link that
+ * was paid. Same `to`/`amount`/`label` always produce the same id.
+ */
+export function deriveLinkId(req: PaymentRequest): `0x${string}` {
+  const label = req.label?.trim() ?? "";
+  return keccak256(
+    encodePacked(
+      ["address", "uint256", "string"],
+      [getAddress(req.to), toBaseUnits(req.amount), label]
+    )
+  );
 }

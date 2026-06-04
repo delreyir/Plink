@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   useAccount,
@@ -6,14 +6,22 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import { erc20Abi } from "../lib/abi";
-import { USDC_ADDRESS, explorerTx, explorerAddress, FAUCET_URL } from "../lib/arc";
+import { erc20Abi, paymentRouterAbi } from "../lib/abi";
+import {
+  USDC_ADDRESS,
+  PAYMENT_ROUTER_ADDRESS,
+  PAYMENT_ROUTER_FEE_BPS,
+  explorerTx,
+  explorerAddress,
+  FAUCET_URL,
+} from "../lib/arc";
 import {
   parsePaymentRequest,
   toBaseUnits,
   fromBaseUnits,
   formatUsd,
   shortAddress,
+  deriveLinkId,
 } from "../lib/link";
 import { ConnectButton } from "../components/ConnectButton";
 
@@ -40,6 +48,8 @@ export function Pay() {
   return <Checkout to={request.to} amount={request.amount} label={request.label} />;
 }
 
+type Step = "approve" | "pay";
+
 function Checkout({
   to,
   amount,
@@ -51,6 +61,14 @@ function Checkout({
 }) {
   const { address, isConnected, chainId } = useAccount();
   const baseUnits = toBaseUnits(amount);
+  const linkId = useMemo(
+    () => deriveLinkId({ to, amount, label }),
+    [to, amount, label]
+  );
+
+  // 1% of the gross amount goes to the protocol fee recipient on settlement.
+  const feeAmount = (baseUnits * BigInt(PAYMENT_ROUTER_FEE_BPS)) / 10000n;
+  const netAmount = baseUnits - feeAmount;
 
   const { data: balance } = useReadContract({
     abi: erc20Abi,
@@ -61,6 +79,17 @@ function Checkout({
   });
 
   const {
+    data: allowance,
+    refetch: refetchAllowance,
+  } = useReadContract({
+    abi: erc20Abi,
+    address: USDC_ADDRESS,
+    functionName: "allowance",
+    args: address ? [address, PAYMENT_ROUTER_ADDRESS] : undefined,
+    query: { enabled: Boolean(address) },
+  });
+
+  const {
     writeContract,
     data: hash,
     isPending,
@@ -68,29 +97,66 @@ function Checkout({
     reset,
   } = useWriteContract();
 
-  const {
-    isLoading: isConfirming,
-    isSuccess,
-  } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: isConfirming, isSuccess } =
+    useWaitForTransactionReceipt({ hash });
+
+  // Track which step the latest tx represents (approve vs pay) so we can
+  // refetch allowance and chain into the pay step automatically.
+  const [step, setStep] = useState<Step>("pay");
+
+  useEffect(() => {
+    if (!isSuccess || !hash) return;
+    if (step === "approve") {
+      // Approval confirmed → refresh allowance and let the user click Pay.
+      refetchAllowance();
+      reset();
+    }
+  }, [isSuccess, hash, step, refetchAllowance, reset]);
 
   const insufficient =
     balance !== undefined && (balance as bigint) < baseUnits;
   const onArc = chainId === 5042002;
-  const isSelf =
-    address && address.toLowerCase() === to.toLowerCase();
+  const isSelf = address && address.toLowerCase() === to.toLowerCase();
+  const needsApproval =
+    allowance === undefined ? false : (allowance as bigint) < baseUnits;
 
-  function pay() {
+  function approve() {
+    setStep("approve");
     writeContract({
       abi: erc20Abi,
       address: USDC_ADDRESS,
-      functionName: "transfer",
-      args: [to as `0x${string}`, baseUnits],
+      functionName: "approve",
+      args: [PAYMENT_ROUTER_ADDRESS, baseUnits],
     });
   }
 
-  if (isSuccess && hash) {
-    return <Success amount={amount} to={to} hash={hash} onReset={reset} />;
+  function pay() {
+    setStep("pay");
+    writeContract({
+      abi: paymentRouterAbi,
+      address: PAYMENT_ROUTER_ADDRESS,
+      functionName: "pay",
+      args: [linkId, to as `0x${string}`, baseUnits],
+    });
   }
+
+  if (isSuccess && hash && step === "pay") {
+    return (
+      <Success
+        amount={amount}
+        to={to}
+        hash={hash}
+        netAmount={netAmount}
+        feeAmount={feeAmount}
+        onReset={reset}
+      />
+    );
+  }
+
+  const primaryAction = needsApproval ? approve : pay;
+  const primaryLabel = needsApproval
+    ? `Approve ${formatUsd(amount)} USDC`
+    : `Pay ${formatUsd(amount)} USDC`;
 
   return (
     <div className="container-page py-16">
@@ -122,7 +188,16 @@ function Checkout({
             </div>
             {label && <p className="mt-2 text-sm text-haze">{label}</p>}
 
-            <div className="mt-8">
+            <FeeBreakdown
+              gross={baseUnits}
+              net={netAmount}
+              fee={feeAmount}
+              feeBps={PAYMENT_ROUTER_FEE_BPS}
+            />
+
+            <Stepper active={needsApproval ? "approve" : "pay"} />
+
+            <div className="mt-6">
               {!isConnected ? (
                 <div className="flex flex-col gap-3">
                   <ConnectButton />
@@ -142,13 +217,15 @@ function Checkout({
                   <button
                     className="btn-primary w-full py-3.5 text-base"
                     disabled={isPending || isConfirming || insufficient}
-                    onClick={pay}
+                    onClick={primaryAction}
                   >
                     {isPending
                       ? "Confirm in wallet…"
                       : isConfirming
-                      ? "Settling…"
-                      : `Pay ${formatUsd(amount)} USDC`}
+                      ? step === "approve"
+                        ? "Approving…"
+                        : "Settling…"
+                      : primaryLabel}
                   </button>
 
                   {balance !== undefined && (
@@ -163,7 +240,8 @@ function Checkout({
                   {isSelf && (
                     <Note tone="amber">
                       Heads up: this link pays your own connected wallet (you'll
-                      just pay gas). Fine for testing the flow.
+                      just pay gas + the protocol fee). Fine for testing the
+                      flow.
                     </Note>
                   )}
                   {insufficient && (
@@ -180,13 +258,11 @@ function Checkout({
                     </Note>
                   )}
                   {error && (
-                    <Note tone="red">
-                      {humanizeError(error.message)}
-                    </Note>
+                    <Note tone="red">{humanizeError(error.message)}</Note>
                   )}
                   {hash && isConfirming && (
                     <Note tone="mint">
-                      Broadcast.{" "}
+                      {step === "approve" ? "Approving" : "Broadcast"}.{" "}
                       <a
                         className="underline"
                         href={explorerTx(hash)}
@@ -205,14 +281,104 @@ function Checkout({
           <div className="grid grid-cols-3 gap-px border-t border-white/8 bg-white/5 text-center">
             <Foot k="Network" v="Arc" />
             <Foot k="Settles" v="< 1s" />
-            <Foot k="Fee" v="0%" />
+            <Foot k="Protocol fee" v={`${PAYMENT_ROUTER_FEE_BPS / 100}%`} />
           </div>
         </div>
 
         <p className="mt-5 text-center text-xs text-haze/70">
-          Non-custodial · funds move wallet to wallet · testnet preview
+          Non-custodial · routed via{" "}
+          <a
+            className="underline-offset-4 hover:underline"
+            href={explorerAddress(PAYMENT_ROUTER_ADDRESS)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            PaymentRouter
+          </a>{" "}
+          · testnet preview
         </p>
       </div>
+    </div>
+  );
+}
+
+function FeeBreakdown({
+  gross,
+  net,
+  fee,
+  feeBps,
+}: {
+  gross: bigint;
+  net: bigint;
+  fee: bigint;
+  feeBps: number;
+}) {
+  if (fee === 0n) return null;
+  return (
+    <div className="mt-6 space-y-1.5 rounded-xl border border-white/10 bg-ink-900/60 p-4 text-xs">
+      <Row label="Recipient receives" value={`${formatUsd(fromBaseUnits(net))} USDC`} accent />
+      <Row
+        label={`Protocol fee (${feeBps / 100}%)`}
+        value={`${formatUsd(fromBaseUnits(fee))} USDC`}
+      />
+      <div className="my-1 h-px bg-white/10" />
+      <Row label="You pay" value={`${formatUsd(fromBaseUnits(gross))} USDC`} bold />
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  accent,
+  bold,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  bold?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-haze">{label}</span>
+      <span
+        className={`font-mono ${
+          accent ? "text-mint" : bold ? "font-semibold text-white" : "text-white"
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function Stepper({ active }: { active: Step }) {
+  const steps: { id: Step; label: string }[] = [
+    { id: "approve", label: "1. Approve" },
+    { id: "pay", label: "2. Pay" },
+  ];
+  return (
+    <div className="mt-5 flex items-center gap-2">
+      {steps.map((s, i) => {
+        const isActive = s.id === active;
+        const isDone = active === "pay" && s.id === "approve";
+        return (
+          <div key={s.id} className="flex flex-1 items-center gap-2">
+            <span
+              className={`flex-1 rounded-full border px-3 py-1 text-center text-[11px] font-medium tracking-wide transition ${
+                isActive
+                  ? "border-mint/40 bg-mint/10 text-mint"
+                  : isDone
+                  ? "border-mint/20 bg-mint/5 text-mint-soft"
+                  : "border-white/10 bg-white/5 text-haze"
+              }`}
+            >
+              {isDone ? "✓ Approved" : s.label}
+            </span>
+            {i < steps.length - 1 && <span className="text-haze">→</span>}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -221,11 +387,15 @@ function Success({
   amount,
   to,
   hash,
+  netAmount,
+  feeAmount,
   onReset,
 }: {
   amount: string;
   to: string;
   hash: string;
+  netAmount: bigint;
+  feeAmount: bigint;
   onReset: () => void;
 }) {
   return (
@@ -246,8 +416,22 @@ function Success({
           <h1 className="mt-6 text-2xl font-bold">Payment settled</h1>
           <p className="mt-2 text-haze">
             <span className="font-mono text-white">{formatUsd(amount)} USDC</span>{" "}
-            sent to {shortAddress(to, 6)}.
+            paid to {shortAddress(to, 6)}.
           </p>
+
+          {feeAmount > 0n && (
+            <div className="mt-5 space-y-1.5 rounded-xl border border-white/10 bg-ink-900/60 p-4 text-left text-xs">
+              <Row
+                label="Recipient received"
+                value={`${formatUsd(fromBaseUnits(netAmount))} USDC`}
+                accent
+              />
+              <Row
+                label="Protocol fee"
+                value={`${formatUsd(fromBaseUnits(feeAmount))} USDC`}
+              />
+            </div>
+          )}
 
           <a
             href={explorerTx(hash)}

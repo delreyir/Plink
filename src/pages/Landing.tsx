@@ -73,7 +73,7 @@ function Hero() {
             <dl className="mt-14 grid max-w-md grid-cols-3 gap-6">
               {[
                 ["< 1s", "Settlement"],
-                ["0%", "Platform fee"],
+                ["1%", "Protocol fee"],
                 ["USDC", "Native gas"],
               ].map(([v, k]) => (
                 <div key={k}>

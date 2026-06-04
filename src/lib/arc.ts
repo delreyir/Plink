@@ -40,6 +40,17 @@ export const USDC_ADDRESS =
 export const USDC_DECIMALS = 6;
 export const USDC_SYMBOL = "USDC";
 
+/**
+ * PaymentRouter contract on Arc Testnet.
+ * Routes USDC from the payer to the recipient and emits a `PaymentReceived`
+ * event tagged with the link id. Collects an optional protocol fee.
+ * Source: contracts/src/PaymentRouter.sol
+ */
+export const PAYMENT_ROUTER_ADDRESS =
+  "0x7b361a189560134bb0a441f5ff264857f6d18b9f" as const;
+/** Protocol fee in basis points (100 = 1%). Cap = 200 (2%). Set at deploy. */
+export const PAYMENT_ROUTER_FEE_BPS = 100;
+
 export const EXPLORER_URL = "https://testnet.arcscan.app";
 export const FAUCET_URL = "https://faucet.circle.com";
 
