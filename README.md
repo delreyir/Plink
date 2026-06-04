@@ -12,21 +12,6 @@ amount + recipient  →  https://plinkarc.xyz/pay?to=0x…&amt=49.00&for=Logo%20
 
 > Testnet preview. Use test USDC only.
 
-## Deployments (Arc Testnet)
-
-| Role | Address |
-| --- | --- |
-| **PaymentRouter** | [`0x7b361a189560134bb0a441f5ff264857f6d18b9f`](https://testnet.arcscan.app/address/0x7b361a189560134bb0a441f5ff264857f6d18b9f) |
-| Deployer | [`0xF597e203904D6fd52CF5768efd1f01fD6073afaE`](https://testnet.arcscan.app/address/0xF597e203904D6fd52CF5768efd1f01fD6073afaE) |
-| Fee recipient | `0xF597e203904D6fd52CF5768efd1f01fD6073afaE` |
-| Protocol fee | `100` bps (1%, capped at 200 bps in the contract) |
-| USDC (Circle, ERC-20) | [`0x3600000000000000000000000000000000000000`](https://testnet.arcscan.app/address/0x3600000000000000000000000000000000000000) |
-| Deploy tx | [`0x315f78488f9501354afdf2c0e08a325d33b0bc81e9cc3726486699971bf7bef1`](https://testnet.arcscan.app/tx/0x315f78488f9501354afdf2c0e08a325d33b0bc81e9cc3726486699971bf7bef1) |
-
-The deployment record is also kept in [`contracts/deployments.arc-testnet.json`](./contracts/deployments.arc-testnet.json).
-
-> Plink does not run a factory on Arc Testnet. The router is a single, immutable contract; it has no admin, no upgrade path, and no per-merchant deploys.
-
 ## Why it works
 
 - **Non-custodial.** Funds are pulled from the payer and pushed to the recipient inside the same transaction. Plink and the router never hold a balance.
