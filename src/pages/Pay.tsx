@@ -141,7 +141,7 @@ function Checkout({
                 <>
                   <button
                     className="btn-primary w-full py-3.5 text-base"
-                    disabled={isPending || isConfirming || insufficient || isSelf}
+                    disabled={isPending || isConfirming || insufficient}
                     onClick={pay}
                   >
                     {isPending
@@ -162,7 +162,8 @@ function Checkout({
 
                   {isSelf && (
                     <Note tone="amber">
-                      This link pays your own connected wallet.
+                      Heads up: this link pays your own connected wallet (you'll
+                      just pay gas). Fine for testing the flow.
                     </Note>
                   )}
                   {insufficient && (
