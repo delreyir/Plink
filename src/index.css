@@ -8,6 +8,8 @@
     /* Dark theme (default) — RGB triplets for Tailwind alpha modifiers */
     --c-white: 255 255 255;
     --c-haze: 124 138 165;
+    --mint: 94 242 176;
+    --mint-soft: 167 247 211;
     --ink-950: 5 6 10;
     --ink-900: 10 12 18;
     --ink-850: 14 17 24;
@@ -24,6 +26,8 @@
        text-white / border-white/8 / bg-white/5 all read correctly. */
     --c-white: 15 23 36;
     --c-haze: 90 102 122;
+    --mint: 13 148 95;
+    --mint-soft: 8 110 74;
     --ink-950: 247 248 250;
     --ink-900: 255 255 255;
     --ink-850: 255 255 255;

@@ -19,8 +19,8 @@ export default {
           600: "rgb(var(--ink-600) / <alpha-value>)",
         },
         mint: {
-          DEFAULT: "#5ef2b0",
-          soft: "#a7f7d3",
+          DEFAULT: "rgb(var(--mint) / <alpha-value>)",
+          soft: "rgb(var(--mint-soft) / <alpha-value>)",
           deep: "#16b97e",
         },
         haze: "rgb(var(--c-haze) / <alpha-value>)",
