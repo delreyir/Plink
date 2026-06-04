@@ -257,6 +257,9 @@ function Success({
           >
             View transaction on Arcscan →
           </a>
+          <Link to="/dashboard" className="btn-ghost mt-3 w-full">
+            View in dashboard
+          </Link>
           <button onClick={onReset} className="btn-primary mt-3 w-full">
             Done
           </button>

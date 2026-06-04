@@ -5,6 +5,7 @@ import { EXPLORER_URL, FAUCET_URL } from "../lib/arc";
 
 const navItems = [
   { to: "/create", label: "Create" },
+  { to: "/dashboard", label: "Dashboard" },
   { to: "/docs", label: "Docs" },
 ];
 
