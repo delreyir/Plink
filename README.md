@@ -8,6 +8,10 @@ Set an amount, share a link, get paid. No wallet address to copy, no invoice sof
 amount + recipient  →  https://plink.xyz/pay?to=0x…&amt=49.00&for=Logo%20design  →  paid in USDC on Arc
 ```
 
+**Live demo:** https://plink-wine.vercel.app
+
+> Testnet preview. Use test USDC only.
+
 ## Why it works
 
 - **Non-custodial** — Plink never holds funds. The payer's wallet transfers USDC directly to the recipient.
@@ -15,6 +19,40 @@ amount + recipient  →  https://plink.xyz/pay?to=0x…&amt=49.00&for=Logo%20des
 - **Gas in USDC** — Arc uses USDC as the native gas token, so payers never need a separate volatile coin.
 - **Sub-second finality** — receipt and funds arrive together.
 - **Open source** — MIT licensed end to end.
+
+## How it works
+
+1. **Create** a link — set an amount in USDC, an optional note, and the recipient (your connected wallet by default).
+2. **Share** the link or QR code — drop it in a DM, an email, or on your site.
+3. **Get paid** — the payer connects a wallet on Arc, taps pay, and USDC moves wallet-to-wallet, final in under a second.
+
+### What's in the app
+
+| Route | What it does |
+| --- | --- |
+| `/` | Animated landing page |
+| `/create` | Build a payment link (amount, note, recipient) with a live QR code |
+| `/pay` | Checkout — decodes the link and lets the payer send USDC on Arc |
+| `/dashboard` | Payments history — reads your wallet's USDC activity straight from Arc |
+| `/docs` | How Plink works, link format, and network details |
+
+### How the link works
+
+A payment request is encoded into the URL query string — no backend needed:
+
+- `to` — recipient wallet address (checksummed)
+- `amt` — amount of USDC, up to 6 decimals
+- `for` — optional memo shown on the checkout
+
+The `/pay` route decodes it, connects the payer's wallet, and calls `transfer`
+on the USDC ERC-20 interface on Arc.
+
+### Dashboard
+
+The dashboard reads recent USDC `Transfer` events for the connected wallet
+directly from the Arc RPC — no indexer or backend. Because Arc caps
+`eth_getLogs` at a 10,000-block range, the scan is chunked into windows and
+merged client-side.
 
 ## Arc network details
 
@@ -28,8 +66,6 @@ amount + recipient  →  https://plink.xyz/pay?to=0x…&amt=49.00&for=Logo%20des
 | Explorer | https://testnet.arcscan.app |
 | Faucet | https://faucet.circle.com |
 
-> Testnet preview. Use test USDC only.
-
 ## Frontend
 
 ```bash
@@ -42,16 +78,11 @@ Stack: Vite + React + TypeScript + Tailwind, wagmi + viem for chain access. The
 default payment flow is a plain USDC `transfer`, so the app needs no contract
 deployed to work.
 
-### How the link works
+### Deploying
 
-A payment request is encoded into the URL query string:
-
-- `to` — recipient wallet address (checksummed)
-- `amt` — amount of USDC, up to 6 decimals
-- `for` — optional memo shown on the checkout
-
-The `/pay` route decodes it, connects the payer's wallet, and calls `transfer`
-on the USDC ERC-20 interface on Arc.
+The app is a single-page app, so deep links like `/pay` and `/dashboard` need a
+rewrite to `index.html`. The included `vercel.json` handles this on Vercel; any
+static host needs an equivalent SPA fallback.
 
 ## Optional: PaymentRouter contract
 
