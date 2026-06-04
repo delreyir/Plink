@@ -5,28 +5,12 @@ import { FlowAnimation } from "../components/FlowAnimation";
 export function Landing() {
   return (
     <div className="overflow-hidden">
-      <PreviewBanner />
       <Hero />
       <Marquee />
       <Steps />
       <Bento />
       <BigStatement />
       <Cta />
-    </div>
-  );
-}
-
-function PreviewBanner() {
-  return (
-    <div className="border-b border-mint/20 bg-mint/5">
-      <div className="container-page flex flex-wrap items-center justify-center gap-3 py-2.5 text-center text-xs text-mint-soft">
-        <span className="font-medium">
-          ✦ This is a design preview of a new look.
-        </span>
-        <Link to="/" className="underline underline-offset-4 hover:text-white">
-          See the current landing →
-        </Link>
-      </div>
     </div>
   );
 }
