@@ -3,3 +3,5 @@ cache/
 broadcast/
 lib/
 .env
+.deployer.json
+node_modules/

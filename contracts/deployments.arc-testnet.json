@@ -1,0 +1,12 @@
+{
+  "network": "Arc Testnet",
+  "chainId": 5042002,
+  "address": "0x9f92caa6e33bbe478bf404854b6b8fcffbadd6e8",
+  "deployer": "0xF597e203904D6fd52CF5768efd1f01fD6073afaE",
+  "feeRecipient": "0xF597e203904D6fd52CF5768efd1f01fD6073afaE",
+  "feeBps": 0,
+  "token": "0x3600000000000000000000000000000000000000",
+  "txHash": "0xc1809be66f2223f94b2778d5fc3f54df1cf846cf291ad392bb5cbbdc72416f6b",
+  "blockNumber": 45516105,
+  "deployedAt": "2026-06-04T18:49:02.306Z"
+}
