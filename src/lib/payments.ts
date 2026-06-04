@@ -1,6 +1,12 @@
 import { usePublicClient } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { type Address, type Log, getAddress, parseAbiItem } from "viem";
+import {
+  type Address,
+  type Log,
+  type PublicClient,
+  getAddress,
+  parseAbiItem,
+} from "viem";
 import { USDC_ADDRESS } from "./arc";
 
 const transferEvent = parseAbiItem(
@@ -17,81 +23,105 @@ export interface PaymentRow {
 }
 
 /**
- * How far back to scan for Transfer events, in blocks. Arc has ~0.48s blocks,
- * so this covers a generous recent window without overloading the RPC.
+ * Arc's RPC caps eth_getLogs at a 10,000-block range per request, so we scan
+ * in windows of MAX_RANGE. CHUNKS controls how far back we look in total
+ * (CHUNKS * MAX_RANGE blocks). Windows are fetched in small parallel batches
+ * to stay friendly to the RPC.
  */
-const LOOKBACK_BLOCKS = 50_000n;
+const MAX_RANGE = 9_500n;
+const CHUNKS = 12; // ~114k blocks of history
+const BATCH = 4; // concurrent getLogs requests
 
-/**
- * Reads recent USDC transfers touching `account` directly from the chain.
- * Returns both incoming (payments received) and outgoing transfers, newest
- * first. No backend or indexer required — this queries Arc's RPC for the
- * standard ERC-20 Transfer event.
- */
 export function usePayments(account?: Address) {
   const client = usePublicClient();
 
   return useQuery({
     queryKey: ["payments", account, client?.chain?.id],
     enabled: Boolean(account && client),
-    refetchInterval: 12_000,
+    refetchInterval: 15_000,
     queryFn: async (): Promise<PaymentRow[]> => {
       if (!account || !client) return [];
 
       const latest = await client.getBlockNumber();
-      const fromBlock = latest > LOOKBACK_BLOCKS ? latest - LOOKBACK_BLOCKS : 0n;
+      const windows = buildWindows(latest, MAX_RANGE, CHUNKS);
 
-      // Two queries: transfers TO me (received) and FROM me (sent).
-      const [incoming, outgoing] = await Promise.all([
-        client.getLogs({
-          address: USDC_ADDRESS,
-          event: transferEvent,
-          args: { to: account },
-          fromBlock,
-          toBlock: "latest",
-        }),
-        client.getLogs({
-          address: USDC_ADDRESS,
-          event: transferEvent,
-          args: { from: account },
-          fromBlock,
-          toBlock: "latest",
-        }),
-      ]);
+      const logs: Log[] = [];
+      for (let i = 0; i < windows.length; i += BATCH) {
+        const slice = windows.slice(i, i + BATCH);
+        const results = await Promise.all(
+          slice.flatMap(({ from, to }) => [
+            getLogsSafe(client, { to: account }, from, to),
+            getLogsSafe(client, { from: account }, from, to),
+          ])
+        );
+        for (const r of results) logs.push(...r);
+      }
 
-      const rows = [
-        ...incoming.map((log) => toRow(log, account, "in")),
-        ...outgoing.map((log) => toRow(log, account, "out")),
-      ].filter((r): r is PaymentRow => r !== null);
+      const seen = new Set<string>();
+      const rows: PaymentRow[] = [];
+      for (const log of logs) {
+        const row = toRow(log, account);
+        if (!row) continue;
+        const key = `${row.hash}-${row.direction}-${log.logIndex}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        rows.push(row);
+      }
 
-      // Newest first.
       rows.sort((a, b) => Number(b.blockNumber - a.blockNumber));
       return rows;
     },
   });
 }
 
-function toRow(
-  log: Log,
-  account: Address,
-  direction: "in" | "out"
-): PaymentRow | null {
-  // viem decodes indexed/non-indexed args onto log.args for typed event logs.
+function buildWindows(latest: bigint, range: bigint, chunks: number) {
+  const windows: { from: bigint; to: bigint }[] = [];
+  let to = latest;
+  for (let i = 0; i < chunks; i++) {
+    if (to < 0n) break;
+    const from = to >= range ? to - range + 1n : 0n;
+    windows.push({ from, to });
+    if (from === 0n) break;
+    to = from - 1n;
+  }
+  return windows;
+}
+
+async function getLogsSafe(
+  client: PublicClient,
+  args: { from?: Address; to?: Address },
+  fromBlock: bigint,
+  toBlock: bigint
+): Promise<Log[]> {
+  try {
+    return (await client.getLogs({
+      address: USDC_ADDRESS,
+      event: transferEvent,
+      args: args as never,
+      fromBlock,
+      toBlock,
+    })) as Log[];
+  } catch {
+    // A single failing window shouldn't break the whole dashboard.
+    return [];
+  }
+}
+
+function toRow(log: Log, account: Address): PaymentRow | null {
   const args = (log as unknown as {
     args?: { from?: string; to?: string; value?: bigint };
   }).args;
   if (!args || args.value === undefined || !args.from || !args.to) return null;
 
-  // Ignore self-transfers showing up twice; keep them tagged by direction.
-  const self =
-    getAddress(args.from) === getAddress(account) &&
-    getAddress(args.to) === getAddress(account);
-  if (self && direction === "out") return null; // de-dupe self payments
+  const acct = getAddress(account);
+  const from = getAddress(args.from);
+  const to = getAddress(args.to);
+  const direction: "in" | "out" = to === acct ? "in" : "out";
 
   return {
     hash: log.transactionHash ?? "",
-    from: getAddress(args.from),
-    to: getAddress(args.to),
+    from,
+    to,
     amount: args.value,
     blockNumber: log.blockNumber ?? 0n,
     direction,

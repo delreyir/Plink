@@ -65,7 +65,7 @@ export function Dashboard() {
               <StatCard
                 label="Window"
                 value="~recent"
-                hint="last ~50k blocks"
+                hint="recent blocks"
               />
             </div>
 
