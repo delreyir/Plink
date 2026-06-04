@@ -1,6 +1,6 @@
 # Plink
 
-**Request USDC with a link.** Non-custodial payment links on [Arc](https://docs.arc.io) — the Layer-1 by Circle where USDC is the native gas token.
+**Request USDC with a link.** Non-custodial payment links on [Arc](https://docs.arc.io), the Layer 1 by Circle where USDC is the native gas token.
 
 Set an amount, share a link, get paid. No wallet address to copy, no invoice software, no 2.9% + 30¢. Funds move wallet-to-wallet and settle in under a second.
 
@@ -14,17 +14,17 @@ amount + recipient  →  https://plink.xyz/pay?to=0x…&amt=49.00&for=Logo%20des
 
 ## Why it works
 
-- **Non-custodial** — Plink never holds funds. The payer's wallet transfers USDC directly to the recipient.
-- **Serverless** — the whole request lives in the URL. No backend, no database, nothing to go down.
-- **Gas in USDC** — Arc uses USDC as the native gas token, so payers never need a separate volatile coin.
-- **Sub-second finality** — receipt and funds arrive together.
-- **Open source** — MIT licensed end to end.
+- **Non-custodial.** Plink never holds funds. The payer's wallet transfers USDC directly to the recipient.
+- **Serverless.** The whole request lives in the URL. No backend, no database, nothing to go down.
+- **Gas in USDC.** Arc uses USDC as the native gas token, so payers never need a separate volatile coin.
+- **Sub-second finality.** Receipt and funds arrive together.
+- **Open source.** MIT licensed end to end.
 
 ## How it works
 
-1. **Create** a link — set an amount in USDC, an optional note, and the recipient (your connected wallet by default).
-2. **Share** the link or QR code — drop it in a DM, an email, or on your site.
-3. **Get paid** — the payer connects a wallet on Arc, taps pay, and USDC moves wallet-to-wallet, final in under a second.
+1. **Create** a link. Set an amount in USDC, an optional note, and the recipient (your connected wallet by default).
+2. **Share** the link or QR code. Drop it in a DM, an email, or on your site.
+3. **Get paid.** The payer connects a wallet on Arc, taps pay, and USDC moves wallet-to-wallet, final in under a second.
 
 ### What's in the app
 
@@ -32,17 +32,17 @@ amount + recipient  →  https://plink.xyz/pay?to=0x…&amt=49.00&for=Logo%20des
 | --- | --- |
 | `/` | Animated landing page |
 | `/create` | Build a payment link (amount, note, recipient) with a live QR code |
-| `/pay` | Checkout — decodes the link and lets the payer send USDC on Arc |
-| `/dashboard` | Payments history — reads your wallet's USDC activity straight from Arc |
+| `/pay` | Checkout. Decodes the link and lets the payer send USDC on Arc |
+| `/dashboard` | Payments history. Reads your wallet's USDC activity straight from Arc |
 | `/docs` | How Plink works, link format, and network details |
 
 ### How the link works
 
-A payment request is encoded into the URL query string — no backend needed:
+A payment request is encoded into the URL query string, with no backend needed:
 
-- `to` — recipient wallet address (checksummed)
-- `amt` — amount of USDC, up to 6 decimals
-- `for` — optional memo shown on the checkout
+- `to`: recipient wallet address (checksummed)
+- `amt`: amount of USDC, up to 6 decimals
+- `for`: optional memo shown on the checkout
 
 The `/pay` route decodes it, connects the payer's wallet, and calls `transfer`
 on the USDC ERC-20 interface on Arc.
@@ -50,7 +50,7 @@ on the USDC ERC-20 interface on Arc.
 ### Dashboard
 
 The dashboard reads recent USDC `Transfer` events for the connected wallet
-directly from the Arc RPC — no indexer or backend. Because Arc caps
+directly from the Arc RPC, with no indexer or backend. Because Arc caps
 `eth_getLogs` at a 10,000-block range, the scan is chunked into windows and
 merged client-side.
 
@@ -89,7 +89,7 @@ static host needs an equivalent SPA fallback.
 For merchants who want on-chain reconciliation, `contracts/` ships an optional
 `PaymentRouter`. It tags each payment with a `linkId`, emits a
 `PaymentReceived` event you can index, and can collect an optional app fee in
-basis points (capped at 2%). It is non-custodial — USDC is pulled from the
+basis points (capped at 2%). It is non-custodial: USDC is pulled from the
 payer and pushed to the recipient in the same transaction.
 
 ```bash

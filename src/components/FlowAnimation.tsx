@@ -32,7 +32,7 @@ export function FlowAnimation() {
           <span className="h-3 w-3 rounded-full bg-amber-400/70" />
           <span className="h-3 w-3 rounded-full bg-mint/70" />
           <span className="ml-3 font-mono text-xs text-haze">
-            Plink — live on arc
+            Plink, live on Arc
           </span>
         </div>
 

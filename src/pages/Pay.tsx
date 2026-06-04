@@ -306,6 +306,6 @@ function humanizeError(msg: string): string {
     return "Insufficient USDC to cover the amount plus gas.";
   if (/user rejected|denied/i.test(msg)) return "Transaction rejected in wallet.";
   if (/underpriced/i.test(msg))
-    return "Gas price too low — Arc requires at least 20 Gwei.";
+    return "Gas price too low. Arc requires at least 20 Gwei.";
   return "Something went wrong. Please try again.";
 }

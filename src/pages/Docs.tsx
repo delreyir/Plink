@@ -12,7 +12,7 @@ export function Docs() {
         </h1>
         <p className="mt-3 text-haze">
           Plink turns a USDC payment request into a shareable URL. There is no
-          backend and no custody — the link carries the request, and the payer's
+          backend and no custody. The link carries the request, and the payer's
           wallet does the transfer directly on Arc.
         </p>
 
@@ -24,13 +24,13 @@ export function Docs() {
           <Code>{`https://plink.xyz/pay?to=0x8a3f…c21d&amt=49.00&for=Logo%20design`}</Code>
           <ul className="mt-4 space-y-2 text-sm">
             <Li>
-              <code>to</code> — the recipient wallet address (checksummed).
+              <code>to</code>: the recipient wallet address (checksummed).
             </Li>
             <Li>
-              <code>amt</code> — the amount of USDC, up to 6 decimals.
+              <code>amt</code>: the amount of USDC, up to 6 decimals.
             </Li>
             <Li>
-              <code>for</code> — an optional memo shown on the checkout.
+              <code>for</code>: an optional memo shown on the checkout.
             </Li>
           </ul>
         </Section>
@@ -72,10 +72,10 @@ export function Docs() {
 
         <Section title="Trust model">
           <ul className="space-y-2 text-sm">
-            <Li>Plink never holds funds — it cannot move your money.</Li>
+            <Li>Plink never holds funds, so it cannot move your money.</Li>
             <Li>No accounts, no KYC, no API keys on either side.</Li>
             <Li>The whole app is static; the link is the source of truth.</Li>
-            <Li>MIT licensed end to end — audit or self-host it.</Li>
+            <Li>MIT licensed end to end. Audit or self-host it.</Li>
           </ul>
         </Section>
       </div>

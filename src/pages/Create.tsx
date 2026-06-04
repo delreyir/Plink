@@ -42,7 +42,7 @@ export function Create() {
           </h1>
           <p className="mt-3 max-w-xl text-haze">
             Set an amount in USDC and share the link. Anyone can pay it from any
-            wallet on Arc — no account needed on either side.
+            wallet on Arc, no account needed on either side.
           </p>
         </header>
 
@@ -85,7 +85,7 @@ export function Create() {
                 </label>
                 <input
                   id="label"
-                  placeholder="Logo design — final files"
+                  placeholder="Logo design"
                   value={label}
                   maxLength={80}
                   onChange={(e) => setLabel(e.target.value)}

@@ -47,8 +47,8 @@ function Hero() {
           <Reveal delay={160}>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-haze">
               No wallet address to copy. No invoice software. No 2.9% + 30¢.
-              Set an amount, share a link, and the money lands in your wallet —
-              final in under a second on Arc, the Layer-1 by Circle.
+              Set an amount, share a link, and the money lands in your wallet,
+              final in under a second on Arc, the Layer 1 by Circle.
             </p>
           </Reveal>
 
@@ -189,7 +189,7 @@ const bento = [
   },
   {
     title: "Gas paid in USDC",
-    body: "Arc uses USDC as the native gas token — no separate volatile coin to hold.",
+    body: "Arc uses USDC as the native gas token, so there's no separate volatile coin to hold.",
     span: "",
   },
   {

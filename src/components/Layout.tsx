@@ -56,7 +56,7 @@ export function Layout() {
             <Logo />
             <p className="max-w-sm text-sm text-haze">
               Request USDC with a link. Non-custodial, open source, built on
-              Arc — the Layer-1 by Circle.
+              Arc, the Layer 1 by Circle.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
