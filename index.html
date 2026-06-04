@@ -36,6 +36,22 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Apply saved theme before paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var t = localStorage.getItem("plink-theme");
+          if (!t) {
+            t = window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+          }
+          var root = document.documentElement;
+          root.classList.toggle("light", t === "light");
+          root.classList.toggle("dark", t === "dark");
+        } catch (e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

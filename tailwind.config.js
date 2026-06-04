@@ -7,20 +7,23 @@ export default {
         8: "0.08",
       },
       colors: {
+        // RGB-triplet CSS vars so opacity modifiers (e.g. white/8) still work
+        // and the whole palette flips between dark/light themes.
+        white: "rgb(var(--c-white) / <alpha-value>)",
         ink: {
-          950: "#05060a",
-          900: "#0a0c12",
-          850: "#0e1118",
-          800: "#13161f",
-          700: "#1c2030",
-          600: "#2a2f42",
+          950: "rgb(var(--ink-950) / <alpha-value>)",
+          900: "rgb(var(--ink-900) / <alpha-value>)",
+          850: "rgb(var(--ink-850) / <alpha-value>)",
+          800: "rgb(var(--ink-800) / <alpha-value>)",
+          700: "rgb(var(--ink-700) / <alpha-value>)",
+          600: "rgb(var(--ink-600) / <alpha-value>)",
         },
         mint: {
           DEFAULT: "#5ef2b0",
           soft: "#a7f7d3",
           deep: "#16b97e",
         },
-        haze: "#7c8aa5",
+        haze: "rgb(var(--c-haze) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -32,7 +35,7 @@ export default {
       },
       backgroundImage: {
         "grid-faint":
-          "linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          "linear-gradient(to right, rgb(var(--c-white) / 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--c-white) / 0.035) 1px, transparent 1px)",
       },
       keyframes: {
         "fade-up": {

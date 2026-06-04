@@ -1,6 +1,7 @@
 import { Outlet, NavLink } from "react-router-dom";
 import { Logo } from "./Logo";
 import { ConnectButton } from "./ConnectButton";
+import { ThemeToggle } from "./ThemeToggle";
 import { EXPLORER_URL, FAUCET_URL } from "../lib/arc";
 
 const navItems = [
@@ -39,6 +40,7 @@ export function Layout() {
               <span className="h-1.5 w-1.5 rounded-full bg-mint" />
               Arc Testnet
             </span>
+            <ThemeToggle />
             <ConnectButton />
           </div>
         </div>

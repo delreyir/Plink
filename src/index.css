@@ -5,6 +5,33 @@
 @layer base {
   :root {
     color-scheme: dark;
+    /* Dark theme (default) — RGB triplets for Tailwind alpha modifiers */
+    --c-white: 255 255 255;
+    --c-haze: 124 138 165;
+    --ink-950: 5 6 10;
+    --ink-900: 10 12 18;
+    --ink-850: 14 17 24;
+    --ink-800: 19 22 31;
+    --ink-700: 28 32 48;
+    --ink-600: 42 47 66;
+    --body-glow-a: rgba(94, 242, 176, 0.08);
+    --body-glow-b: rgba(86, 120, 255, 0.06);
+  }
+
+  :root.light {
+    color-scheme: light;
+    /* Light theme — neutral inverts: "white" becomes near-black ink so
+       text-white / border-white/8 / bg-white/5 all read correctly. */
+    --c-white: 15 23 36;
+    --c-haze: 90 102 122;
+    --ink-950: 247 248 250;
+    --ink-900: 255 255 255;
+    --ink-850: 255 255 255;
+    --ink-800: 238 241 245;
+    --ink-700: 226 230 236;
+    --ink-600: 210 215 223;
+    --body-glow-a: rgba(22, 185, 126, 0.1);
+    --body-glow-b: rgba(86, 120, 255, 0.08);
   }
 
   html,
@@ -17,12 +44,12 @@
     @apply bg-ink-950 text-white font-sans antialiased;
     background-image: radial-gradient(
         60rem 40rem at 75% -10%,
-        rgba(94, 242, 176, 0.08),
+        var(--body-glow-a),
         transparent 60%
       ),
       radial-gradient(
         50rem 40rem at 10% 10%,
-        rgba(86, 120, 255, 0.06),
+        var(--body-glow-b),
         transparent 55%
       );
   }
@@ -68,7 +95,15 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-br from-white via-white to-mint-soft bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(var(--c-white)),
+      rgb(var(--c-white)),
+      #a7f7d3
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .hairline {
@@ -91,10 +126,10 @@
   .text-glow {
     background: linear-gradient(
       110deg,
-      #ffffff 0%,
-      #a7f7d3 35%,
+      rgb(var(--c-white)) 0%,
+      #16b97e 35%,
       #7da2ff 70%,
-      #ffffff 100%
+      rgb(var(--c-white)) 100%
     );
     background-size: 220% auto;
     -webkit-background-clip: text;
