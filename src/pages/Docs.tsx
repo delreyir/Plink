@@ -1,4 +1,10 @@
-import { USDC_ADDRESS, EXPLORER_URL } from "../lib/arc";
+import {
+  USDC_ADDRESS,
+  EXPLORER_URL,
+  PAYMENT_ROUTER_ADDRESS,
+  PAYMENT_ROUTER_FEE_BPS,
+  explorerAddress,
+} from "../lib/arc";
 
 export function Docs() {
   return (
@@ -13,7 +19,8 @@ export function Docs() {
         <p className="mt-3 text-haze">
           Plink turns a USDC payment request into a shareable URL. There is no
           backend and no custody. The link carries the request, and the payer's
-          wallet does the transfer directly on Arc.
+          wallet settles it on Arc through an open <code>PaymentRouter</code>{" "}
+          contract.
         </p>
 
         <Section title="The payment link">
@@ -35,12 +42,111 @@ export function Docs() {
           </ul>
         </Section>
 
-        <Section title="Settlement">
+        <Section title="Settlement flow">
           <p>
-            When the payer taps pay, their wallet calls{" "}
-            <code>transfer</code> on the USDC ERC-20 interface on Arc. Funds move
-            wallet-to-wallet with no intermediary. Arc finalizes blocks in under
-            a second, so the receipt and the funds arrive together.
+            Paying a link is a two-step on-chain flow. Both steps run from the
+            payer's wallet on Arc.
+          </p>
+          <ol className="mt-3 space-y-2 text-sm">
+            <Li>
+              <strong className="text-white">Approve.</strong> The payer
+              approves the <code>PaymentRouter</code> for the amount of USDC.
+            </Li>
+            <Li>
+              <strong className="text-white">Pay.</strong> The payer calls{" "}
+              <code>pay(linkId, to, amount)</code>. The router pulls the gross
+              amount, sends the net to the recipient, and forwards the
+              protocol fee to the fee recipient, all in one transaction.
+            </Li>
+          </ol>
+          <Code>{`payer ──approve(amount)──▶ USDC
+payer ──pay(linkId, to, amount)──▶ PaymentRouter
+                                       │
+                                       ├─ safeTransferFrom(payer → router, amount)
+                                       ├─ safeTransfer(router → recipient, net)
+                                       ├─ safeTransfer(router → feeRecipient, fee)
+                                       └─ emit PaymentReceived(linkId, payer, recipient, amount, fee)`}</Code>
+          <p className="mt-3">
+            Arc finalizes blocks in under a second, so the receipt and the
+            funds arrive together.
+          </p>
+        </Section>
+
+        <Section title="Protocol fee">
+          <p>
+            The router charges a flat protocol fee, set in basis points at
+            deploy time and capped at <code>200</code> bps (2%). The fee is
+            split off the gross amount inside <code>pay()</code> and forwarded
+            to the fee recipient in the same transaction.
+          </p>
+          <Table
+            rows={[
+              ["Fee", `${PAYMENT_ROUTER_FEE_BPS} bps (${PAYMENT_ROUTER_FEE_BPS / 100}%)`],
+              ["Cap", "200 bps (2%)"],
+              ["Mutability", "Immutable, set in constructor"],
+            ]}
+          />
+          <p className="mt-3 text-sm">
+            Example: a <code>50.00 USDC</code> payment with a 1% fee sends{" "}
+            <code>49.50 USDC</code> to the recipient and <code>0.50 USDC</code>{" "}
+            to the fee recipient. The payer's wallet is debited{" "}
+            <code>50.00 USDC</code> plus a few millicents of gas.
+          </p>
+        </Section>
+
+        <Section title="linkId">
+          <p>
+            Each payment is tagged with a deterministic <code>linkId</code>{" "}
+            (bytes32) so the on-chain <code>PaymentReceived</code> event can
+            be reconciled back to a specific link.
+          </p>
+          <Code>{`linkId = keccak256(abi.encodePacked(to, amountBaseUnits, label))`}</Code>
+          <p className="mt-3 text-sm">
+            The same recipient + amount + label always produces the same id,
+            and the id is computed client-side from the URL params. No
+            registration, no database.
+          </p>
+        </Section>
+
+        <Section title="Deployments (Arc Testnet)">
+          <Table
+            rows={[
+              [
+                "PaymentRouter",
+                PAYMENT_ROUTER_ADDRESS,
+              ],
+              [
+                "USDC (ERC-20)",
+                USDC_ADDRESS,
+              ],
+              ["Network", "Arc Testnet"],
+              ["Chain ID", "5042002"],
+              [
+                "Protocol fee",
+                `${PAYMENT_ROUTER_FEE_BPS} bps (${PAYMENT_ROUTER_FEE_BPS / 100}%)`,
+              ],
+            ]}
+          />
+          <p className="mt-3 text-sm">
+            Inspect the live contract on{" "}
+            <a
+              className="text-mint underline-offset-4 hover:underline"
+              href={explorerAddress(PAYMENT_ROUTER_ADDRESS)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Arcscan
+            </a>
+            . Source:{" "}
+            <a
+              className="text-mint underline-offset-4 hover:underline"
+              href="https://github.com/delreyir/Plink/blob/main/contracts/src/PaymentRouter.sol"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <code>contracts/src/PaymentRouter.sol</code>
+            </a>
+            .
           </p>
         </Section>
 
@@ -58,23 +164,19 @@ export function Docs() {
           />
         </Section>
 
-        <Section title="The PaymentRouter contract">
-          <p>
-            The default flow uses a plain USDC transfer, which needs no contract
-            at all. For merchants who want on-chain reconciliation, Plink also
-            ships an optional <code>PaymentRouter</code> contract: it tags each
-            payment with a <code>linkId</code> and emits a{" "}
-            <code>PaymentReceived</code> event you can index, with an optional
-            app fee in basis points. See{" "}
-            <code>contracts/src/PaymentRouter.sol</code> in the repo.
-          </p>
-        </Section>
-
         <Section title="Trust model">
           <ul className="space-y-2 text-sm">
-            <Li>Plink never holds funds, so it cannot move your money.</Li>
+            <Li>
+              Non-custodial. The router never holds a balance between calls;
+              the payer pays, the recipient and fee recipient receive, all in
+              one transaction.
+            </Li>
+            <Li>
+              Immutable. The router has no admin, no upgrade path, and the fee
+              is fixed at deploy.
+            </Li>
             <Li>No accounts, no KYC, no API keys on either side.</Li>
-            <Li>The whole app is static; the link is the source of truth.</Li>
+            <Li>The frontend is static; the link is the source of truth.</Li>
             <Li>MIT licensed end to end. Audit or self-host it.</Li>
           </ul>
         </Section>
