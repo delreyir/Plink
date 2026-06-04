@@ -97,7 +97,7 @@ function Checkout({
       <div className="mx-auto max-w-md">
         <div className="card overflow-hidden shadow-card">
           <div className="flex items-center justify-between border-b border-white/8 px-6 py-4">
-            <span className="font-mono text-xs text-haze">plink · checkout</span>
+            <span className="font-mono text-xs text-haze">Plink · checkout</span>
             <span className="pill">USDC on Arc</span>
           </div>
 

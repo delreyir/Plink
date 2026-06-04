@@ -23,7 +23,7 @@ export function Logo({ className = "" }: { className?: string }) {
           fill="#5ef2b0"
         />
       </svg>
-      <span className="text-lg font-bold tracking-tight">plink</span>
+      <span className="text-lg font-bold tracking-tight">Plink</span>
     </Link>
   );
 }
