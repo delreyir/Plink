@@ -28,7 +28,7 @@ export function Docs() {
             Everything a payer needs is encoded into the URL query string. A
             link looks like this:
           </p>
-          <Code>{`https://plink.xyz/pay?to=0x8a3f…c21d&amt=49.00&for=Logo%20design`}</Code>
+          <Code>{`https://plinkarc.xyz/pay?to=0x8a3f…c21d&amt=49.00&for=Logo%20design`}</Code>
           <ul className="mt-4 space-y-2 text-sm">
             <Li>
               <code>to</code>: the recipient wallet address (checksummed).

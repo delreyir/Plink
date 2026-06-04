@@ -5,10 +5,10 @@
 Set an amount, share a link, get paid. No wallet address to copy, no invoice software, no 2.9% + 30¢. Funds move wallet-to-wallet through an open `PaymentRouter` contract and settle in under a second.
 
 ```
-amount + recipient  →  https://plink.xyz/pay?to=0x…&amt=49.00&for=Logo%20design  →  paid in USDC on Arc
+amount + recipient  →  https://plinkarc.xyz/pay?to=0x…&amt=49.00&for=Logo%20design  →  paid in USDC on Arc
 ```
 
-**Live demo:** https://plink-wine.vercel.app
+**Live:** https://plinkarc.xyz
 
 > Testnet preview. Use test USDC only.
 

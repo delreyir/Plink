@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  */
 const STEPS = [
   { tag: "create", text: "Request 50.00 USDC · “Logo design”", icon: "✦" },
-  { tag: "share", text: "plink.xyz/pay?to=0x8a3f…&amt=50.00", icon: "↗" },
+  { tag: "share", text: "plinkarc.xyz/pay?to=0x8a3f…&amt=50.00", icon: "↗" },
   { tag: "pay", text: "Payer signs · USDC on Arc", icon: "◎" },
   { tag: "settled", text: "Settled in 0.42s · +50.00 USDC", icon: "✓" },
 ];
