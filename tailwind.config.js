@@ -47,11 +47,36 @@ export default {
           "0%,100%": { opacity: "1" },
           "50%": { opacity: "0.35" },
         },
+        float: {
+          "0%,100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        gradientShift: {
+          "0%,100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        glowPulse: {
+          "0%,100%": { opacity: "0.4", transform: "scale(1)" },
+          "50%": { opacity: "0.7", transform: "scale(1.05)" },
+        },
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        blink: {
+          "0%,49%": { opacity: "1" },
+          "50%,100%": { opacity: "0" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.6s cubic-bezier(0.22,1,0.36,1) both",
         shimmer: "shimmer 2.5s linear infinite",
         pulseDot: "pulseDot 1.8s ease-in-out infinite",
+        float: "float 6s ease-in-out infinite",
+        gradientShift: "gradientShift 8s ease infinite",
+        glowPulse: "glowPulse 5s ease-in-out infinite",
+        marquee: "marquee 30s linear infinite",
+        blink: "blink 1.1s step-end infinite",
       },
     },
   },

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { wagmiConfig } from "./lib/wagmi";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
+import { Preview } from "./pages/Preview";
 import { Create } from "./pages/Create";
 import { Pay } from "./pages/Pay";
 import { Dashboard } from "./pages/Dashboard";
@@ -23,6 +24,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Landing />} />
+              <Route path="/preview" element={<Preview />} />
               <Route path="/create" element={<Create />} />
               <Route path="/pay" element={<Pay />} />
               <Route path="/dashboard" element={<Dashboard />} />
